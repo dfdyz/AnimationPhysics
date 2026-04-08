@@ -17,13 +17,14 @@ public class EntityAnimationPhysics extends AnimationPhysics{
 
     public EntityAnimationPhysics(LivingEntityPatch<?> entityPatch) {
         this.entityPatch = entityPatch;
+
     }
 
     public void tick(boolean useSubStep){
         var d = entityPatch.getOriginal().getDeltaMovement().scale(1f);
         if(useSubStep)
             this.tick((float) d.x, (float) d.y, (float) d.z, entityPatch.getYRotO(), entityPatch.getYRot()
-                    ,entityPatch.getArmature(), entityPatch.getAnimator(), 5);
+                    ,entityPatch.getArmature(), entityPatch.getAnimator());
         else
             this.tick((float) d.x, (float) d.y, (float) d.z,entityPatch.getYRot()
                     ,entityPatch.getArmature(), entityPatch.getAnimator().getPose(1));

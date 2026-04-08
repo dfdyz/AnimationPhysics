@@ -27,7 +27,7 @@ public class ColliderBody {
     public ColliderBody(){
         this(new PhysicsRigidBody(new EmptyShape(true)));
         this.body.setKinematic(true);
-        this.body.setCollideWithGroups(0xFFFF);
+        this.body.setCollideWithGroups(0x0000FFFF);
     }
 
     public void setPose(Vector3f trans, Quaternionf rot){
@@ -103,16 +103,6 @@ public class ColliderBody {
 
     public int getMask(){
         return body.getCollideWithGroups();
-    }
-
-    public void setMaskTo(int id, boolean collision){
-        int g = 0x0001 << (id % 16);
-        if(collision){
-            setMask(getMask() | g);
-        }
-        else {
-            setMask(getMask() & (~g));
-        }
     }
 
     public Quaternionf getRotation(float pt, Quaternionf dist){

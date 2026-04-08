@@ -20,21 +20,21 @@ public class NativeLoader {
         var file_name = getLibName("Release", flavor);
 
         var file = path.resolve(file_name).toFile();
-        if(!file.exists()){
-            try {
-                String libpath = MessageFormat.
-                        format("/assets/ef_anim_phy/physics_native_lib/{0}", file_name);
-                InputStream is = EFAnimPhy.class.getResourceAsStream(libpath);
+        if(file.exists())
+            file.delete();
+        try {
+            String libpath = MessageFormat.
+                    format("/assets/ef_anim_phy/physics_native_lib/{0}", file_name);
+            InputStream is = EFAnimPhy.class.getResourceAsStream(libpath);
 
-                file.createNewFile();
-                FileOutputStream fos = new FileOutputStream(file);
-                var resourceBytes = is.readAllBytes();
-                fos.write(resourceBytes, 0, resourceBytes.length);
-                fos.flush();
-                fos.close();
-            }catch (Exception e){
-                EFAnimPhy.LOGGER.error("Failed to create file: {}\nReason:\n{}", file, e);
-            }
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            var resourceBytes = is.readAllBytes();
+            fos.write(resourceBytes, 0, resourceBytes.length);
+            fos.flush();
+            fos.close();
+        }catch (Exception e){
+            EFAnimPhy.LOGGER.error("Failed to create file: {}\nReason:\n{}", file, e);
         }
         return loadLibbulletjme(true, path.toFile(),"Release", flavor);
     }

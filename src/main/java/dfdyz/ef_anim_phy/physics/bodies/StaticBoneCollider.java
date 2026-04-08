@@ -27,10 +27,6 @@ public class StaticBoneCollider extends ColliderBody {
         ));
     }
 
-    public StaticBoneCollider() {
-        super(new PhysicsRigidBody(new CapsuleCollisionShape(0.2f, 0.3f, 0), 1000));
-    }
-
     public StaticBoneCollider(CollisionShape shape){
         super(new PhysicsRigidBody(shape));
     }

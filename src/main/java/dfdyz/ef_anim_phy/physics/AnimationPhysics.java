@@ -3,10 +3,7 @@ package dfdyz.ef_anim_phy.physics;
 import com.google.common.collect.Maps;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.CollisionShape;
-import dfdyz.ef_anim_phy.physics.bodies.DynamicBoneChain;
-import dfdyz.ef_anim_phy.physics.bodies.DynamicBoneCollider;
-import dfdyz.ef_anim_phy.physics.bodies.PhyUtils;
-import dfdyz.ef_anim_phy.physics.bodies.StaticBoneCollider;
+import dfdyz.ef_anim_phy.physics.bodies.*;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -29,6 +26,7 @@ import static yesman.epicfight.api.animation.JointTransform.*;
 public class AnimationPhysics {
 
     //public final LivingEntityPatch<?> entityPatch;
+    public final List<JointSpring> jointSprings = new ArrayList<>();
     public final PhysicsSpace physicsSpace = new PhysicsSpace(PhysicsSpace.BroadphaseType.AXIS_SWEEP_3);
     public final Map<StaticBoneCollider, String> staticBones = Maps.newHashMap();
     public final List<DynamicBoneChain> dynamicChains = new ArrayList<>();
@@ -56,7 +54,6 @@ public class AnimationPhysics {
         var sbc = new StaticBoneCollider(shape);
         staticBones.put(sbc, joint.getName());
         sbc.setGroup(group);
-        sbc.setMaskTo(group, false);
         sbc.init();
         physicsSpace.addCollisionObject(sbc.body);
 
@@ -83,9 +80,7 @@ public class AnimationPhysics {
         float yRotLerp = Mth.rotLerp(pt, yRotO, yRot);
         PhyUtils.createRotatorDeg(180.0F - yRotLerp, Vec3f.Y_AXIS, general_rotation);
         armature.setPose(animator.getPose(pt));
-
         dynamicChains.forEach(dbc -> dbc.feedBack(dx, dy, dz));
-
         staticBones.forEach((c, j) -> {
             var jid = armature.searchJointByName(j).getId();
             var T = armature.getPoseMatrices()[jid];
@@ -112,8 +107,11 @@ public class AnimationPhysics {
                     rot.x, rot.y, rot.z, rot.w);
         });
 
-        if (warmuped) return;
-        warmuped = true;
+        if(warmuped){
+            jointSprings.forEach(JointSpring::feedback);
+            return;
+        }
+
         dynamicChains.forEach(dynamicBoneChain -> {
             for (int i = 0; i < dynamicBoneChain.jointChain.length; i++) {
                 var c = dynamicBoneChain.bodyChain[i];
@@ -128,6 +126,14 @@ public class AnimationPhysics {
                         rot.x, rot.y, rot.z, rot.w);
             }
         });
+
+        dynamicChains.forEach(dbc -> {
+            for (DynamicBoneCollider dynamicBoneCollider : dbc.bodyChain) {
+                dynamicBoneCollider.updatePoseCache();
+            }
+        });
+
+        warmuped = true;
     }
 
     protected boolean warmuped = false;
@@ -166,8 +172,11 @@ public class AnimationPhysics {
                     rot.x, rot.y, rot.z, rot.w);
         });
 
-        if (warmuped) return;
-        warmuped = true;
+        if(warmuped){
+            jointSprings.forEach(JointSpring::feedback);
+            return;
+        }
+
         dynamicChains.forEach(dynamicBoneChain -> {
             for (int i = 0; i < dynamicBoneChain.jointChain.length; i++) {
                 var c = dynamicBoneChain.bodyChain[i];
@@ -187,6 +196,8 @@ public class AnimationPhysics {
                 dynamicBoneCollider.updatePoseCache();
             }
         });
+
+        warmuped = true;
     }
 
     public void tick(float dx,float dy,float dz, float yRot, Armature armature, Pose pose){
@@ -200,13 +211,13 @@ public class AnimationPhysics {
         });
     }
 
-    public void tick(float dx,float dy,float dz, float yRotO, float yRot, Armature armature, Animator animator, int subStep){
-        float h = 0.05f / subStep;
-        dx /= subStep;
-        dy /= subStep;
-        dz /= subStep;
-        for (int i = 0; i < subStep; i++) {
-            updateStaticBonesStep(-dx, -dy, -dz, yRotO, yRot,armature, animator, (i+1) * h);
+    public void tick(float _dx,float _dy,float _dz, float yRotO, float yRot, Armature armature, Animator animator){
+        float h = 0.01f;
+        float dx = _dx / 5;
+        float dy = _dy / 5;
+        float dz = _dz / 5;
+        for (int i = 0; i < 5; i++) {
+            updateStaticBonesStep(-dx, -dy, -dz, yRotO, yRot,armature, animator, (i+1) * 0.2f);
             physicsSpace.update(h, 0);
         }
         dynamicChains.forEach(dbc -> {

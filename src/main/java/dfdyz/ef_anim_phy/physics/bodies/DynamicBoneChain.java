@@ -117,7 +117,8 @@ public class DynamicBoneChain<C extends Constraint> {
         var startT = poses[sj.getId()];
         var startP = startT.toTranslationVector();
         var segmentLen = rare_len;
-        var midP = OpenMatrix4f.transform3v(startT, Vec3f.Y_AXIS, new Vec3f()).scale(segmentLen / 2).add(startP);
+        var midP = OpenMatrix4f.transform3v(startT, Vec3f.Y_AXIS, new Vec3f()).scale(
+                segmentLen / 2).add(startP);
 
         var initRot = startT.toQuaternion().invert().normalize();//OpenMatrix4f.exportToMojangMatrix(startT).getNormalizedRotation(new Quaternionf());
         var dbc = new DynamicBoneCollider(shape[i], mass[i]);
@@ -190,12 +191,6 @@ public class DynamicBoneChain<C extends Constraint> {
     public void setMask(int mask){
         for (DynamicBoneCollider dynamicBoneCollider : bodyChain) {
             dynamicBoneCollider.setMask(mask);
-        }
-    }
-
-    public void setMaskTo(int group, boolean collision){
-        for (DynamicBoneCollider dynamicBoneCollider : bodyChain) {
-            dynamicBoneCollider.setMaskTo(group, collision);
         }
     }
 

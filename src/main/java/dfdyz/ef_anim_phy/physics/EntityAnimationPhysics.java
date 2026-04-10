@@ -6,21 +6,35 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import yesman.epicfight.api.animation.JointTransform;
 import yesman.epicfight.api.animation.Pose;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
+import yesman.epicfight.api.utils.math.Vec3f;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public class EntityAnimationPhysics extends AnimationPhysics{
 
     public final LivingEntityPatch<?> entityPatch;
 
+    protected float prevRotX = 0;
+    protected float prevRotY = 0;
+
     public EntityAnimationPhysics(LivingEntityPatch<?> entityPatch) {
         this.entityPatch = entityPatch;
-
     }
 
     public void tick(boolean useSubStep){
+        if(!warmuped) {
+            prevRotX = entityPatch.getOriginal().xRotO;
+            prevRotY = entityPatch.getOriginal().yHeadRotO;
+        }
+        var origin_RX = entityPatch.getOriginal().xRotO;
+        var origin_RY = entityPatch.getOriginal().yHeadRotO;
+
+        entityPatch.getOriginal().xRotO = prevRotX;
+        entityPatch.getOriginal().yHeadRotO = prevRotY;
+
         var d = entityPatch.getOriginal().getDeltaMovement().scale(1f);
         if(useSubStep)
             this.tick((float) d.x, (float) d.y, (float) d.z, entityPatch.getYRotO(), entityPatch.getYRot()
@@ -28,6 +42,12 @@ public class EntityAnimationPhysics extends AnimationPhysics{
         else
             this.tick((float) d.x, (float) d.y, (float) d.z,entityPatch.getYRot()
                     ,entityPatch.getArmature(), entityPatch.getAnimator().getPose(1));
+
+        prevRotX = origin_RX;
+        prevRotY = origin_RY;
+
+        entityPatch.getOriginal().xRotO = origin_RX;
+        entityPatch.getOriginal().yHeadRotO = origin_RY;
     }
 
     public void updateSBCCache(){

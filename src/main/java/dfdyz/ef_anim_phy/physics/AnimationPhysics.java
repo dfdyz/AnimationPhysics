@@ -33,7 +33,7 @@ public class AnimationPhysics {
     public final HashMap<String, DynamicBoneCollider> dynamicBones = new HashMap<>();
 
     public AnimationPhysics(){
-        physicsSpace.setAccuracy(1 / 100f);
+        physicsSpace.setAccuracy(1.f / (20 * subStepCount));
     }
 
     public void prepare(Armature armature){
@@ -73,13 +73,17 @@ public class AnimationPhysics {
 
     private final OpenMatrix4f COLLIDER_TRANSFORM = new OpenMatrix4f();
 
+    protected void posePrevPorcess(Pose pose, float pt){
 
+    }
 
     public void updateStaticBonesStep(float dx, float dy, float dz, float yRotO, float yRot,
                                       Armature armature, Animator animator, float pt){
         float yRotLerp = Mth.rotLerp(pt, yRotO, yRot);
         PhyUtils.createRotatorDeg(180.0F - yRotLerp, Vec3f.Y_AXIS, general_rotation);
-        armature.setPose(animator.getPose(pt));
+        var pose = animator.getPose(pt);
+        posePrevPorcess(pose, pt);
+        armature.setPose(pose);
         dynamicChains.forEach(dbc -> dbc.feedBack(dx, dy, dz));
         staticBones.forEach((c, j) -> {
             var jid = armature.searchJointByName(j).getId();
@@ -211,13 +215,15 @@ public class AnimationPhysics {
         });
     }
 
+    protected static final int subStepCount = 5;
+    protected static final float invSubStepCount = 1.f / subStepCount;
     public void tick(float _dx,float _dy,float _dz, float yRotO, float yRot, Armature armature, Animator animator){
-        float h = 0.01f;
-        float dx = _dx / 5;
-        float dy = _dy / 5;
-        float dz = _dz / 5;
-        for (int i = 0; i < 5; i++) {
-            updateStaticBonesStep(-dx, -dy, -dz, yRotO, yRot,armature, animator, (i+1) * 0.2f);
+        float h = 0.05f * invSubStepCount;
+        float dx = _dx * invSubStepCount;
+        float dy = _dy * invSubStepCount;
+        float dz = _dz * invSubStepCount;
+        for (int i = 0; i < subStepCount; i++) {
+            updateStaticBonesStep(-dx, -dy, -dz, yRotO, yRot,armature, animator, (i+1) * invSubStepCount);
             physicsSpace.update(h, 0);
         }
         dynamicChains.forEach(dbc -> {

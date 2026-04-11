@@ -11,6 +11,7 @@ import yesman.epicfight.api.animation.Pose;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
 import yesman.epicfight.api.utils.math.Vec3f;
+import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public class EntityAnimationPhysics extends AnimationPhysics{
@@ -19,6 +20,7 @@ public class EntityAnimationPhysics extends AnimationPhysics{
 
     protected float prevRotX = 0;
     protected float prevRotY = 0;
+    protected float prevBodyY = 0;
 
     public EntityAnimationPhysics(LivingEntityPatch<?> entityPatch) {
         this.entityPatch = entityPatch;
@@ -28,12 +30,17 @@ public class EntityAnimationPhysics extends AnimationPhysics{
         if(!warmuped) {
             prevRotX = entityPatch.getOriginal().xRotO;
             prevRotY = entityPatch.getOriginal().yHeadRotO;
+            prevBodyY = entityPatch.getYRotO();
         }
         var origin_RX = entityPatch.getOriginal().xRotO;
         var origin_RY = entityPatch.getOriginal().yHeadRotO;
+        var origin_BY = entityPatch.getYRotO();
 
         entityPatch.getOriginal().xRotO = prevRotX;
         entityPatch.getOriginal().yHeadRotO = prevRotY;
+
+        if(entityPatch instanceof AbstractClientPlayerPatch<?>)
+            entityPatch.setYRotO(prevBodyY);
 
         var d = entityPatch.getOriginal().getDeltaMovement().scale(1f);
         if(useSubStep)
@@ -45,9 +52,12 @@ public class EntityAnimationPhysics extends AnimationPhysics{
 
         prevRotX = origin_RX;
         prevRotY = origin_RY;
+        prevBodyY = origin_BY;
 
         entityPatch.getOriginal().xRotO = origin_RX;
         entityPatch.getOriginal().yHeadRotO = origin_RY;
+        if(entityPatch instanceof AbstractClientPlayerPatch<?>)
+            entityPatch.setYRotO(origin_BY);
     }
 
     public void updateSBCCache(){
